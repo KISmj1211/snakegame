@@ -6,9 +6,10 @@ pygame.init()
 WIDTH = 500
 ROWS = 20
 win = pygame.display.set_mode((WIDTH, WIDTH))
-pygame.display.set_caption("Snake Game - 단계 9")
+pygame.display.set_caption("Snake Game")
 FONT = pygame.font.SysFont("Arial",30)
 high_score = 0
+base_speed = 200
 def drawGrid(surface):
     """격자 그리기"""
     sizeBtwn = WIDTH // ROWS
@@ -111,7 +112,7 @@ def randomSnack(snake):
 def game_over(score):
     
     """게임 오버 화면"""
-    global s, snack, high_score  # 뱀과 먹이를 다시 초기화할 수 있도록 global 사용
+    global s, snack, high_score, base_speed  # 뱀과 먹이를 다시 초기화할 수 있도록 global 사용
 
     if score> high_score:
         high_score = score
@@ -134,6 +135,7 @@ def game_over(score):
     s = Snake((255, 0, 0), (10, 10))  # 뱀 생성
     # snack = Cube(randomSnack(s), color=(0, 255, 0))  # 먹이 생성
     snack = Cube(randomSnack(s), color=(0, 255, 0))
+    base_speed = 200
 
 s = Snake((255, 0, 0), (10, 10))  # 뱀 생성
 # snack = Cube(randomSnack(s), color=(0, 255, 0))  # 먹이 생성
@@ -141,6 +143,7 @@ snack = Cube(randomSnack(s), color=(0, 255, 0))
 
 running = True
 while running:
+    speed = max(50, base_speed - s.score//10*5)
     pygame.time.delay(100)
 
     for event in pygame.event.get():
@@ -153,6 +156,7 @@ while running:
     if s.body[0].pos == snack.pos:
         s.addCube()
         snack = Cube(randomSnack(s), color=(0, 255, 0))
+        base_speed = max(50, base_speed-5)
 
     win.fill((0, 0, 0))
     drawGrid(win)
