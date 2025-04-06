@@ -6,8 +6,9 @@ pygame.init()
 WIDTH = 500
 ROWS = 20
 win = pygame.display.set_mode((WIDTH, WIDTH))
-pygame.display.set_caption("Snake Game - 단계 6")
+pygame.display.set_caption("Snake Game - 단계 9")
 FONT = pygame.font.SysFont("Arial",30)
+high_score = 0
 def drawGrid(surface):
     """격자 그리기"""
     sizeBtwn = WIDTH // ROWS
@@ -16,9 +17,12 @@ def drawGrid(surface):
         pygame.draw.line(surface, (255, 255, 255), (x, 0), (x, WIDTH))
         pygame.draw.line(surface, (255, 255, 255), (0, y), (WIDTH, y))
 
-def draw_score(surface, score):
+def draw_score(surface, score, high_score):
     score_text=FONT.render(f"Score: {score}",True,(255,255,255))
+    high_score_text = FONT.render(f"High Score: {high_score}",True,(255,255,255))
     surface.blit(score_text, (10,10))
+    surface.blit(high_score_text, (10,40))
+    
 class Cube:
     """뱀과 먹이를 표현하는 클래스"""
     def __init__(self, pos, color=(255, 0, 0)):
@@ -107,11 +111,15 @@ def randomSnack(snake):
 def game_over(score):
     
     """게임 오버 화면"""
-    global s, snack  # 뱀과 먹이를 다시 초기화할 수 있도록 global 사용
+    global s, snack, high_score  # 뱀과 먹이를 다시 초기화할 수 있도록 global 사용
 
+    if score> high_score:
+        high_score = score
     win.fill((0,0,0))
     game_over_text = FONT.render(f"Game Over! Score:{score}",True,(255,255,255))
+    high_score_text = FONT.render(f"High Score: {high_score}",True,(255,255,255))
     win.blit(game_over_text, (WIDTH//4, WIDTH//3))
+    win.blit(high_score_text, (WIDTH//5,WIDTH//3+40))
     pygame.display.update()
     pygame.time.delay(2000)
 
@@ -150,7 +158,7 @@ while running:
     drawGrid(win)
     s.draw(win)
     snack.draw(win)
-    draw_score(win, s.score)
+    draw_score(win, s.score, high_score)
     pygame.display.update()
 
 pygame.quit()
