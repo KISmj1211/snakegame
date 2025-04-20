@@ -10,6 +10,7 @@ pygame.display.set_caption("Snake Game")
 FONT = pygame.font.SysFont("Arial",30)
 high_score = 0
 base_speed = 200
+reverse_controls = False
 def drawGrid(surface):
     """격자 그리기"""
     sizeBtwn = WIDTH // ROWS
@@ -31,10 +32,10 @@ class Cube:
         self.dirnx, self.dirny = 0, 1  # 기본 이동 방향 (아래쪽)
         self.color = color
 
-    def move(self, dirnx, dirny):
-        """큐브 이동"""
-        self.dirnx, self.dirny = dirnx, dirny
-        self.pos = (self.pos[0] + self.dirnx, self.pos[1] + self.dirny)
+    # def move(self, dirnx, dirny):
+    #     """큐브 이동"""
+    #     self.dirnx, self.dirny = dirnx, dirny
+    #     self.pos = (self.pos[0] + self.dirnx, self.pos[1] + self.dirny)
 
     def draw(self, surface):
         """큐브 그리기"""
@@ -53,13 +54,13 @@ class Snake:
         """뱀 이동"""
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT]:
-            self.dirnx, self.dirny = -1, 0
+            self.dirnx, self.dirny = -1, 0 if not reverse_controls else (1,0)
         elif keys[pygame.K_RIGHT]:
-            self.dirnx, self.dirny = 1, 0
+            self.dirnx, self.dirny = 1, 0 if not reverse_controls else (-1,0)
         elif keys[pygame.K_UP]:
-            self.dirnx, self.dirny = 0, -1
+            self.dirnx, self.dirny = 0, -1 if not reverse_controls else (0,1)
         elif keys[pygame.K_DOWN]:
-            self.dirnx, self.dirny = 0, 1
+            self.dirnx, self.dirny = 0, 1 if not reverse_controls else (0,-1)
 
         # 몸을 앞으로 이동
         for i in range(len(self.body) - 1, 0, -1):
@@ -87,9 +88,11 @@ class Snake:
         self.body.append(new_cube)
         self.score +=10
     def reset(self,pos):
+        global reverse_controls
         self.body=[Cube(pos)]
         self.dirnx,self.dirny=0,1
         self.score = 0
+        reverse_controls = False
         
     def draw(self, surface):
         """뱀 그리기"""
@@ -109,10 +112,16 @@ def randomSnack(snake):
 
         if is_valid:
             return x, y
+def randomPurpleItem(snake):
+    while True:
+        x,y=random.randint(2, ROWS -3), random.randint(2, ROWS -3)
+        is_valid = all(cube.pos != (x,y) for cube in snake.body)
+        if is_valid:
+            return x,y
 def game_over(score):
     
     """게임 오버 화면"""
-    global s, snack, high_score, base_speed  # 뱀과 먹이를 다시 초기화할 수 있도록 global 사용
+    global s, snack, purple_item,reverse_controls, high_score, base_speed  # 뱀과 먹이를 다시 초기화할 수 있도록 global 사용
 
     if score> high_score:
         high_score = score
@@ -135,11 +144,14 @@ def game_over(score):
     s = Snake((255, 0, 0), (10, 10))  # 뱀 생성
     # snack = Cube(randomSnack(s), color=(0, 255, 0))  # 먹이 생성
     snack = Cube(randomSnack(s), color=(0, 255, 0))
+    purple_item = None
     base_speed = 200
+    reverse_controls = False
 
 s = Snake((255, 0, 0), (10, 10))  # 뱀 생성
 # snack = Cube(randomSnack(s), color=(0, 255, 0))  # 먹이 생성
 snack = Cube(randomSnack(s), color=(0, 255, 0))
+purple_item = None
 
 running = True
 while running:
@@ -157,11 +169,19 @@ while running:
         s.addCube()
         snack = Cube(randomSnack(s), color=(0, 255, 0))
         base_speed = max(50, base_speed-5)
+        if s.score % 20 ==0 and s.score !=0:
+            purple_item = Cube(randomSnack(s), color = (128,0,128))
+    if purple_item and s.body[0].pos == purple_item.pos:
+        s.score += 30
+        reverse_controls = not reverse_controls
+        purple_item = None
 
     win.fill((0, 0, 0))
     drawGrid(win)
     s.draw(win)
     snack.draw(win)
+    if purple_item:
+        purple_item.draw(win)
     draw_score(win, s.score, high_score)
     pygame.display.update()
 
